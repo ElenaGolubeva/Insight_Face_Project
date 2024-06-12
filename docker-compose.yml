@@ -1,0 +1,29 @@
+﻿version: '3'
+
+services:
+  rabbitmq:
+    image: rabbitmq:3.9-management
+    ports:
+      - "5672:5672"
+      - "15672:15672"
+    volumes:
+      - rabbitmq-data:/var/lib/rabbitmq
+
+      
+  frame-service:
+    build:
+      context: ./frame
+      dockerfile: Dockerfile
+    ports:
+      - "5000:5000/udp"
+    volumes:
+      - ./video:/app/video
+    environment:
+      - VIDEO_INPUT_URL=udp://host.docker.internal:5000
+      - VIDEO_OUTPUT_DIR=/app/video/output
+    command: python frame.py
+
+  
+
+volumes:
+  rabbitmq-data:
