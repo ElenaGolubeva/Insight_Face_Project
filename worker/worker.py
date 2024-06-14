@@ -6,6 +6,8 @@ import cv2
 import time
 import io
 import numpy as np
+import requests
+
 
 def connect_rabbitmq():
     connection_attempts = 0
@@ -29,8 +31,6 @@ def save_frame(frame_bytes, output_dir):
         frame_count = 1
         file_name = f"frame_{frame_count}.jpg"
         file_path = os.path.join(output_dir, file_name)
-
-        # Проверка, что файл с таким же содержимым не существует
         while os.path.exists(file_path):
             frame_hash = hashlib.md5(frame_bytes).hexdigest()
             for existing_file in os.listdir(output_dir):
@@ -70,6 +70,8 @@ def main():
     finally:
         connection.close()
         sys.exit(0)
+
+
 
 if __name__ == '__main__':
     main()

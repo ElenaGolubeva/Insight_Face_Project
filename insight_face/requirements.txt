@@ -1,0 +1,10 @@
+﻿insightface
+opencv-python
+matplotlib
+requests
+onnxruntime
+numpy
+python-multipart
+fastapi
+uvicorn
+pydantic

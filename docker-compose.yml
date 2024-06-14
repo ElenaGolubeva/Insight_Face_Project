@@ -20,6 +20,14 @@ services:
       - rabbitmq
     command: python worker.py
 
+  insightface-service:
+    build:
+      context: ./insight_face
+      dockerfile: Dockerfile
+    command: uvicorn insight-face:apps --reload --host 127.0.0.1 --port 8000
+    ports:
+      - "8000:8000"
+
   
   rabbitmq:
     image: rabbitmq:3.9-management

@@ -1,3 +1,4 @@
 ﻿opencv-python
 pika
 pillow
+requests
