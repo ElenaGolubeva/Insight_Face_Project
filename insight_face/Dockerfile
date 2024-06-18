@@ -24,10 +24,16 @@ unzip \
 wget \
 zlib1g-dev
 
+
+    
 COPY requirements.txt .
 RUN pip install --no-cache-dir -r requirements.txt
+COPY face_analysis.py .
+RUN python face_analysis.py
 
 COPY . /app
+
+
 WORKDIR /app
 
-CMD ["uvicorn", "insight-face:apps", "--host", "127.0.0.1", "--port", "8000"]
+CMD ["uvicorn", "insight-face:apps", "--host", "0.0.0.0", "--port", "8000"]

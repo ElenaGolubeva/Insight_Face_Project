@@ -24,31 +24,26 @@ def connect_rabbitmq():
             connection_attempts += 1
     raise Exception("Failed to connect to RabbitMQ")
 
-import hashlib
+def send_frame(name_file):
+    with open(f"output/{name_file}", "rb") as f:
+       files = {"file": f} 
+       url = "http://insightface-service:8000/data"
+       response = requests.post(url, files=files)
+       print(response.json()) 
+
 
 def save_frame(frame_bytes, output_dir):
     try:
-        frame_count = 1
-        file_name = f"frame_{frame_count}.jpg"
+        file_name = f"frame_{len(os.listdir(output_dir)) + 1}.jpg"  # Используем индекс для уникального имени
         file_path = os.path.join(output_dir, file_name)
-        while os.path.exists(file_path):
-            frame_hash = hashlib.md5(frame_bytes).hexdigest()
-            for existing_file in os.listdir(output_dir):
-                existing_file_path = os.path.join(output_dir, existing_file)
-                existing_file_hash = hashlib.md5(open(existing_file_path, 'rb').read()).hexdigest()
-                if frame_hash == existing_file_hash:
-                    print(f"Frame {frame_count} is a duplicate, skipping.")
-                    return
-            frame_count += 1
-            file_name = f"frame_{frame_count}.jpg"
-            file_path = os.path.join(output_dir, file_name)
 
         image = Image.open(io.BytesIO(frame_bytes))
         image = cv2.cvtColor(np.array(image), cv2.COLOR_RGB2BGR)
         cv2.imwrite(file_path, image)
-        print(f"Saved frame {frame_count} to {file_path}")
+        #print(f"Сохранен кадр {file_name} в {file_path}")
+        send_frame(file_name)
     except Exception as e:
-        print(f"Error saving frame: {e}")
+        print(f"Ошибка обработки кадра: {e}")
 
 
 def main():
@@ -60,6 +55,7 @@ def main():
 
     def callback(ch, method, properties, body):
         save_frame(body, output_dir)
+
 
     try:
         channel.basic_consume(queue='frame', on_message_callback=callback, auto_ack=True)

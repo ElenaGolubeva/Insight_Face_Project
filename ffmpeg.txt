@@ -1,15 +1,5 @@
 ﻿Захват видеопотока с web-камеры
-ffmpeg -loglevel error -f dshow -i video="HD Camera" -vcodec libx264 -preset ultrafast -tune zerolatency -thread_type slice -slices 1 -intra-refresh 1 -r 30 -g 60 -s 800x600 -aspect 4:3 -acodec aac -ar 44100 -b:v 2.5M -minrate:v 900k -maxrate:v 2.5M -bufsize:v 5M -b:a 128K -pix_fmt yuv420p -f mpegts udp://127.0.0.1:5000
-
-ffmpeg -f dshow -i video="HD Camera" -c copy -f mpegts udp://127.0.0.1:5000
+ffmpeg -loglevel error -f dshow -i video="HD Camera" -vcodec libx264 -preset ultrafast -tune zerolatency -thread_type slice -slices 1 -intra-refresh 1 -r 30 -g 60 -s 800x600 -aspect 4:3  -b:v 2.5M -minrate:v 900k -maxrate:v 2.5M -bufsize:v 5M  -pix_fmt yuv420p -f mpegts udp://127.0.0.1:5000
 
 Просмотр захваченного видеопотока
 ffplay -i udp://127.0.0.1:5000
-
-
-
-
-docker build -t frame-service .
-
-
-docker run -d --name frame -p 127.0.0.1:5000:5000 frame-service

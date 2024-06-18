@@ -8,27 +8,36 @@ services:
       dockerfile: Dockerfile
     ports:
       - "5000:5000/udp"
+    networks:
+      - ntw
     depends_on:
       - rabbitmq
+      - insightface-service
     command: python frame.py
 
-  worker-service:
-    build:
-      context: ./worker
-      dockerfile: Dockerfile
-    depends_on:
-      - rabbitmq
-    command: python worker.py
 
   insightface-service:
     build:
       context: ./insight_face
       dockerfile: Dockerfile
-    command: uvicorn insight-face:apps --reload --host 127.0.0.1 --port 8000
     ports:
       - "8000:8000"
+    networks:
+      - ntw
 
   
+  worker-service:
+    build:
+      context: ./worker
+      dockerfile: Dockerfile
+    ports:
+      - "8001:8001"
+    depends_on:
+      - insightface-service
+    networks:
+      - ntw
+
+
   rabbitmq:
     image: rabbitmq:3.9-management
     environment:
@@ -37,11 +46,16 @@ services:
     ports:
       - "5672:5672"
       - "15672:15672"
+    networks:
+      - ntw
     volumes:
       - rabbitmq-data:/var/lib/rabbitmq
 
       
-  
+networks:
+  ntw:
+    name: ntw
+    driver: bridge
 
 volumes:
   rabbitmq-data:
