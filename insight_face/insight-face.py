@@ -25,7 +25,7 @@ async def create_data(file: UploadFile = File(...)):
         file_content = await file.read()
         img = Image.open(io.BytesIO(file_content))
         img = np.array(img)
-
+        img = cv2.cvtColor(img, cv2.COLOR_RGB2BGR)
         faces = app.get(img)
 
         face_vectors = []

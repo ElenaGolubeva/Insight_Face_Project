@@ -1,0 +1,4 @@
+﻿faiss-cpu
+packaging
+pika
+numpy<2

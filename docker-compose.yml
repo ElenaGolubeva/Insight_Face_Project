@@ -37,6 +37,16 @@ services:
     networks:
       - ntw
 
+  faiss-service:
+    build:
+      context: ./faiss-db
+      dockerfile: Dockerfile
+    depends_on:
+      - insightface-service
+      - rabbitmq
+    networks:
+      - ntw
+
 
   rabbitmq:
     image: rabbitmq:3.9-management
