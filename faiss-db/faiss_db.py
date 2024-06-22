@@ -1,26 +1,14 @@
 ﻿import json
 import numpy as np
 import faiss
-import pika, sys, os
-import time
+import sys
+from broker.rabbitmq_class import RabbitMQBroker
+from broker.kafka_class import KafkaBroker
 
+d = 512
+index = faiss.IndexFlat(d)
 
-def connect_rabbitmq():
-    connection_attempts = 0
-    max_attempts = 5
-    while connection_attempts < max_attempts:
-        try:
-            connection = pika.BlockingConnection(pika.ConnectionParameters('rabbitmq', 5672))
-            channel = connection.channel()
-            print("Connected to RabbitMQ")
-            return channel, connection
-        except pika.exceptions.AMQPConnectionError:
-            print(f"Waiting for RabbitMQ connection... (attempt {connection_attempts+1}/{max_attempts})")
-            time.sleep(7)
-            connection_attempts += 1
-    raise Exception("Failed to connect to RabbitMQ")
-
-def get_vectors_from_message(body):
+def get_vector(body):
     try:
         data = json.loads(body.decode())
         vector = np.array(data["array"])
@@ -29,39 +17,39 @@ def get_vectors_from_message(body):
         print(f"Ошибка при получении векторов из сообщения: {e}")
         return None
 
-def main():
-    d = 512
-    index = faiss.IndexFlat(d)
-    channel, connection = connect_rabbitmq()
-    channel.queue_declare(queue='faiss')
-
-    def callback(ch, method, properties, body):
-        vectors = get_vectors_from_message(body)
-        if vectors is not None:
+def unique_vector(f_index, b_vector):
+    if b_vector is not None:
+        try:
+            distances, indices = f_index.search(np.expand_dims(b_vector, axis=0), 1)
+            if distances[0][0] > 1e-6:
+                return b_vector
+        except Exception as e:
+             print(f"Ошибка при определении уникальности вектора: {e}")
+    return None
+    
+def callback(ch, method, properties, body):
+        vector_from_body = get_vector(body)
+        #vector = unique_vector(index, vector_from_body)
+        if vector_from_body is not None:
             try:
-                index.add(vectors)
+                index.add(vector_from_body)
                 print(f"Вектор №{index.ntotal} добавлен. ")
             except Exception as e:
                 print(f"Ошибка при добавлении векторов в индекс Faiss: {e}")
 
 
+def main():
+
+    rabbit = RabbitMQBroker()
+    rabbit.connect('rabbitmq', 5672)
     try:
-        channel.basic_consume(queue='faiss', on_message_callback=callback, auto_ack=True)
-        print(' [*] Waiting for messages. To exit press CTRL+C')
-        channel.start_consuming()
+        rabbit.consume('faiss', callback)
     except KeyboardInterrupt:
         print('Interrupted')
     finally:
-        connection.close()
+        rabbit.disconnect()
         sys.exit(0)
 
 
 if __name__ == '__main__':
-    try:
         main()
-    except KeyboardInterrupt:
-        print('Interrupted')
-        try:
-            sys.exit(0)
-        except SystemExit:
-            os._exit(0)

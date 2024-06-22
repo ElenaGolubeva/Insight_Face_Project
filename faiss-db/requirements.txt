@@ -2,3 +2,4 @@
 packaging
 pika
 numpy<2
+kafka-python

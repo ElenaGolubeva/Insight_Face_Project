@@ -13,7 +13,11 @@ services:
     depends_on:
       - rabbitmq
       - insightface-service
-    command: python frame.py
+    environment:
+      KAFKA_BOOTSTRAP_SERVERS: kafka1:9092
+      KAFKA_TOPIC: my-topic
+    volumes:
+      - ./broker:/app/broker
 
 
   insightface-service:
@@ -25,17 +29,21 @@ services:
     networks:
       - ntw
 
-  
   worker-service:
     build:
       context: ./worker
       dockerfile: Dockerfile
     ports:
       - "8001:8001"
+      - "65432:65432/tcp"
+    environment:
+      - WEBSOCKET_PORT=8765
     depends_on:
-      - insightface-service
+      - insightface-service  
     networks:
       - ntw
+    volumes:
+      - ./broker:/app/broker
 
   faiss-service:
     build:
@@ -46,7 +54,8 @@ services:
       - rabbitmq
     networks:
       - ntw
-
+    volumes:
+      - ./broker:/app/broker
 
   rabbitmq:
     image: rabbitmq:3.9-management
@@ -60,7 +69,30 @@ services:
       - ntw
     volumes:
       - rabbitmq-data:/var/lib/rabbitmq
+    healthcheck:
+      test: [ "CMD", "nc", "-z", "rabbitmq", "5672" ]
+      interval: 10s
+      timeout: 10s
+      retries: 5
 
+  zookeeper:
+    image: wurstmeister/zookeeper
+    ports:
+      - "2181:2181"
+    networks:
+      - ntw
+  kafka:
+    image: wurstmeister/kafka
+    ports:
+      - "9092:9092"
+    environment:
+      KAFKA_ADVERTISED_HOST_NAME: kafka
+      KAFKA_CREATE_TOPICS: "test:1:1"
+      KAFKA_ZOOKEEPER_CONNECT: zookeeper:2181
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+    networks:
+      - ntw
       
 networks:
   ntw:
