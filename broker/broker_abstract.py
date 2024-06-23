@@ -10,7 +10,7 @@ class AbstractBrocker(ABC):
         pass
 
     @abstractmethod
-    def consume(self, topic):
+    def consume(self, topic, callback):
         pass
 
     @abstractmethod

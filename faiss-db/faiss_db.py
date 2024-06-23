@@ -17,31 +17,30 @@ def get_vector(body):
         print(f"Ошибка при получении векторов из сообщения: {e}")
         return None
 
-def unique_vector(f_index, b_vector):
-    if b_vector is not None:
-        try:
-            distances, indices = f_index.search(np.expand_dims(b_vector, axis=0), 1)
-            if distances[0][0] > 1e-6:
-                return b_vector
-        except Exception as e:
-             print(f"Ошибка при определении уникальности вектора: {e}")
-    return None
-    
-def callback(ch, method, properties, body):
-        vector_from_body = get_vector(body)
-        #vector = unique_vector(index, vector_from_body)
-        if vector_from_body is not None:
-            try:
-                index.add(vector_from_body)
-                print(f"Вектор №{index.ntotal} добавлен. ")
-            except Exception as e:
-                print(f"Ошибка при добавлении векторов в индекс Faiss: {e}")
+def is_unique_vector(vector):
+    if index.ntotal == 0:
+        return True
+    distances, _ = index.search(vector.reshape(1, -1), 1)
+    if distances[0, 0] < 1e-5:
+        return False
+    return True
 
+def callback(body):
+    vector_from_body = get_vector(body)
+    if vector_from_body is not None:
+        try:
+            if is_unique_vector(vector_from_body):
+                index.add(vector_from_body)
+                print(f"Вектор №{index.ntotal} добавлен.")
+            else:
+                print("Вектор не уникален, не добавляем.")
+        except Exception as e:
+            print(f"Ошибка при добавлении векторов в индекс Faiss: {e}")
 
 def main():
 
-    rabbit = RabbitMQBroker()
-    rabbit.connect('rabbitmq', 5672)
+    rabbit = KafkaBroker()
+    rabbit.connect('kafka', 9092)
     try:
         rabbit.consume('faiss', callback)
     except KeyboardInterrupt:

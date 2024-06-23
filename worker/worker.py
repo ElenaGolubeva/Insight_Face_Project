@@ -40,9 +40,9 @@ def main():
     output_dir = "output"
     os.makedirs(output_dir, exist_ok=True)
 
-    rabbit = RabbitMQBroker()
-    rabbit.connect('rabbitmq', 5672)
-    def callback(ch, method, properties, body):
+    rabbit = KafkaBroker()
+    rabbit.connect('kafka', 9092)
+    def callback(body):
         image_data = save_frame(body, output_dir)
         if image_data:
             try:

@@ -10,8 +10,8 @@ def convert_image_to_bytes(image):
 
 def extract_frames_from_video(video_path, fps_limit=1):
     try:
-        rabbit = RabbitMQBroker()
-        rabbit.connect("rabbitmq", 5672)
+        rabbit = KafkaBroker()
+        rabbit.connect("kafka", 9092)
         cap = cv2.VideoCapture(video_path)
         if not cap.isOpened():
             raise Exception(f"Failed to open video: {video_path}")
