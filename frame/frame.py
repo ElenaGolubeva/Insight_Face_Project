@@ -7,7 +7,7 @@ def convert_image_to_bytes(image):
     _, img_encoded = cv2.imencode('.jpg', image)
     return img_encoded.tobytes()
 
-def extract_frames_from_video(video_path, fps_limit=1):
+def extract_frames_from_video(video_path, fps_limit=2):
     try:
         mess_broker = KafkaBroker()
         mess_broker.connect()
