@@ -2,5 +2,4 @@
 pika
 pillow
 requests
-websockets
 kafka-python

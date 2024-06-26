@@ -11,10 +11,10 @@ index = faiss.IndexFlat(d)
 def get_vector(body):
     try:
         data = json.loads(body.decode())
-        vector = np.array(data["array"])
+        vector = np.array(data["face_vectors"])
         return vector
     except Exception as e:
-        print(f"Ошибка при получении векторов из сообщения: {e}")
+        print(f"Error receiving vectors from a message: {e}")
         return None
 
 def is_unique_vector(vector):
@@ -31,22 +31,20 @@ def callback(body):
         try:
             if is_unique_vector(vector_from_body):
                 index.add(vector_from_body)
-                print(f"Вектор №{index.ntotal} добавлен.")
-            else:
-                print("Вектор не уникален, не добавляем.")
+                print(f"Vector №{index.ntotal} added.")
         except Exception as e:
-            print(f"Ошибка при добавлении векторов в индекс Faiss: {e}")
+            print(f"Error when adding vectors to the Faiss index: {e}")
 
 def main():
 
-    rabbit = KafkaBroker()
-    rabbit.connect('kafka', 9092)
+    mess_broker = KafkaBroker()
+    mess_broker.connect()
     try:
-        rabbit.consume('faiss', callback)
+        mess_broker.consume('faiss', callback)
     except KeyboardInterrupt:
         print('Interrupted')
     finally:
-        rabbit.disconnect()
+        mess_broker.disconnect()
         sys.exit(0)
 
 

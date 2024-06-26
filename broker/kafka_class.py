@@ -6,14 +6,14 @@ class KafkaBroker(AbstractBrocker):
         self.producer = None
         self.consumer = None
 
-    def connect(self, host, port):
+    def connect(self):
         connection_attempts = 5
         retry_delay = 7
         attempt = 0
         for attempt in range(connection_attempts):
             try:
-                self.producer = KafkaProducer(bootstrap_servers=f"{host}:{port}")
-                self.consumer = KafkaConsumer(bootstrap_servers=f"{host}:{port}")
+                self.producer = KafkaProducer(bootstrap_servers=f"kafka:9092")
+                self.consumer = KafkaConsumer(bootstrap_servers=f"kafka:9092")
                 print("Connected to Kafka")
                 return
             except Exception as e:

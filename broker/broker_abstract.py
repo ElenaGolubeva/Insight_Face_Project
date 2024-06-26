@@ -2,7 +2,7 @@
 
 class AbstractBrocker(ABC):
     @abstractmethod
-    def connect(self, host, port):
+    def connect(self):
         pass
 
     @abstractmethod

@@ -6,9 +6,9 @@ class RabbitMQBroker(AbstractBrocker):
         self.connection = None
         self.channel = None
 
-    def connect(self, host, port):
+    def connect(self):
             try:
-                self.connection = pika.BlockingConnection(pika.ConnectionParameters(host=host, port=port, connection_attempts=5, retry_delay=7))
+                self.connection = pika.BlockingConnection(pika.ConnectionParameters(host='rabbitmq', port=5672, connection_attempts=5, retry_delay=7))
                 self.channel = self.connection.channel()
                 print("Connected to RabbitMQ")
             except Exception as e:
@@ -24,7 +24,7 @@ class RabbitMQBroker(AbstractBrocker):
     def consume(self, queue, callback):
         try:
             self.channel.queue_declare(queue=queue)
-            self.channel.basic_consume(queue=queue, on_message_callback=callback, auto_ack=True)
+            self.channel.basic_consume(queue=queue, on_message_callback=callback, auto_ack=False)
             print(' [*] Waiting for messages. To exit press CTRL+C')
             self.channel.start_consuming()
         except Exception as e:
